@@ -1,48 +1,37 @@
-# Dependencies
-node_modules/
-package-lock.json
-yarn.lock
-
-# Build outputs
-dist/
-build/
-*.tsbuildinfo
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
 # OS
 .DS_Store
 Thumbs.db
 
-# Logs
-logs/
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build / output
+dist/
+build/
+output/
+*.tsbuildinfo
+
+# Logs & temp
 *.log
-npm-debug.log*
-
-# Testing
-coverage/
-.nyc_output/
-
-# Temporary files
 tmp/
 temp/
 *.tmp
 
-# Docker
-.dockerignore
-
-# Redis dump
+# Local DB / Redis
+*.db
 dump.rdb
 
-# Claude
-.claude/
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Worker generated media (테스트용 영상은 포함)
+# library-did-main/packages/worker/storage/videos/*.mp4
+# library-did-main/packages/worker/storage/videos/*.vtt
+genta_video_engine/
