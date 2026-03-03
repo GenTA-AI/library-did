@@ -1,119 +1,93 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useAuthStore } from '../../stores/authStore';
 
-const ASPECT_RATIO = 9 / 16;
+const NAV_TABS = [
+  { label: '대시보드', path: '/admin/dashboard' },
+  { label: '영상 관리', path: '/admin/videos' },
+  { label: '도서 등록', path: '/admin/recommend' },
+] as const;
 
 /**
- * Admin 공통 레이아웃 - DID 스타일과 통일
- * - 세로 화면: 화면 꽉 채움
- * - 가로 화면: 9:16 비율 유지하며 중앙 배치
+ * Admin 공통 레이아웃 - 상단 네비게이션 + 넓은 가로 레이아웃
  */
-export function AdminLayout({
-  children,
-  title = '관리자',
-}: {
-  children: React.ReactNode;
-  title?: string;
-}) {
+export function AdminLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const isDashboard = location.pathname === '/admin/dashboard';
-  const isVideos = location.pathname === '/admin/videos';
-  const isRecommend = location.pathname === '/admin/recommend';
+  const { logout } = useAuthStore();
 
-  const [isLandscape, setIsLandscape] = useState(false);
-
-  useEffect(() => {
-    const checkOrientation = () => {
-      setIsLandscape(window.innerWidth > window.innerHeight);
-    };
-    checkOrientation();
-    window.addEventListener('resize', checkOrientation);
-    return () => window.removeEventListener('resize', checkOrientation);
-  }, []);
+  const handleLogout = () => {
+    logout();
+    navigate('/admin/login');
+  };
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center"
-      style={{ background: isLandscape ? '#1a1a1a' : 'transparent' }}
+      className="flex min-h-screen flex-col"
+      style={{
+        fontFamily: 'Pretendard, sans-serif',
+        background: 'linear-gradient(180deg, #F0F4F8 0%, #E8ECF0 100%)',
+      }}
     >
-      <div
-        className="flex flex-col overflow-hidden"
-        style={{
-          fontFamily: 'Pretendard, sans-serif',
-          background: 'linear-gradient(180deg, #F0F4F8 0%, #E8ECF0 100%)',
-          width: isLandscape ? `calc(100vh * ${ASPECT_RATIO})` : '100%',
-          height: '100%',
-          maxWidth: '100%',
-        }}
+      {/* Header */}
+      <header
+        className="flex w-full shrink-0 items-center justify-between px-6 py-0"
+        style={{ background: 'rgba(45, 55, 72, 0.95)' }}
       >
-        {/* Header */}
-        <header
-          className="relative flex w-full shrink-0 items-center justify-center px-4 py-4 sm:py-5"
-          style={{ background: 'rgba(45, 55, 72, 0.95)' }}
+        {/* 좌측: 타이틀 */}
+        <span
+          className="shrink-0 cursor-pointer text-lg font-bold text-white"
+          onClick={() => navigate('/admin/dashboard')}
         >
-          {/* 뒤로가기 버튼 - 절대 위치 */}
-          {!isDashboard && (
-            <button
-              type="button"
-              onClick={() => navigate('/admin/dashboard')}
-              className="absolute left-4 text-base font-medium text-white/80 hover:text-white sm:text-lg"
-            >
-              ← 뒤로
-            </button>
-          )}
-          {/* 제목 - 항상 중앙 */}
-          <h1 className="text-xl font-bold text-white sm:text-2xl">{title}</h1>
-        </header>
+          BookMate 관리자
+        </span>
 
-        {/* Main content */}
-        <main className="flex min-h-0 flex-1 flex-col overflow-auto">
-          {children}
-        </main>
+        {/* 중앙: 탭 네비게이션 */}
+        <nav className="flex">
+          {NAV_TABS.map((tab) => {
+            const isActive = location.pathname === tab.path;
+            return (
+              <button
+                key={tab.path}
+                type="button"
+                onClick={() => navigate(tab.path)}
+                className="relative px-5 py-4 text-sm font-medium transition"
+                style={{ color: isActive ? '#fff' : 'rgba(255,255,255,0.6)' }}
+              >
+                {tab.label}
+                {isActive && (
+                  <span
+                    className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t"
+                    style={{ background: '#63B3ED' }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </nav>
 
-        {/* Bottom navigation */}
-        <footer
-          className="flex w-full shrink-0 items-center justify-center gap-3 px-4 py-4 sm:gap-4 sm:px-6 sm:py-5"
-          style={{
-            background: 'rgba(255,255,255,0.9)',
-            borderTop: '1px solid rgba(0,0,0,0.08)',
-          }}
-        >
+        {/* 우측: DID 보기 + 로그아웃 */}
+        <div className="flex shrink-0 items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate('/admin/dashboard')}
-            className="flex h-12 flex-1 items-center justify-center rounded-xl text-base font-semibold transition active:scale-95 sm:h-14 sm:text-lg"
-            style={{
-              background: isDashboard ? '#2D3748' : '#F0F0F0',
-              color: isDashboard ? '#fff' : '#666',
-            }}
+            onClick={() => navigate('/did')}
+            className="rounded-md px-3 py-1.5 text-xs font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
           >
-            대시보드
+            DID 화면 보기
           </button>
           <button
             type="button"
-            onClick={() => navigate('/admin/videos')}
-            className="flex h-12 flex-1 items-center justify-center rounded-xl text-base font-semibold transition active:scale-95 sm:h-14 sm:text-lg"
-            style={{
-              background: isVideos ? '#2D3748' : '#F0F0F0',
-              color: isVideos ? '#fff' : '#666',
-            }}
+            onClick={handleLogout}
+            className="rounded-md bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80 transition hover:bg-white/20 hover:text-white"
           >
-            영상 관리
+            로그아웃
           </button>
-          <button
-            type="button"
-            onClick={() => navigate('/admin/recommend')}
-            className="flex h-12 flex-1 items-center justify-center rounded-xl text-base font-semibold transition active:scale-95 sm:h-14 sm:text-lg"
-            style={{
-              background: isRecommend ? '#2D3748' : '#F0F0F0',
-              color: isRecommend ? '#fff' : '#666',
-            }}
-          >
-            도서 등록
-          </button>
-        </footer>
-      </div>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="flex min-h-0 flex-1 flex-col overflow-auto">
+        {children}
+      </main>
     </div>
   );
 }

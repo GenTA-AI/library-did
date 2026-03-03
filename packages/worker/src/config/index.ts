@@ -84,6 +84,12 @@ export const config = {
     /** true이면 Alpas 검색을 1차 소스로 사용 (기본: true) */
     enabled: process.env.ALPAS_ENABLED !== 'false',
   },
+
+  /** 네이버 도서 검색 API (줄거리 설명 PRIMARY source) */
+  naver: {
+    clientId: process.env.NAVER_CLIENT_ID || '',
+    clientSecret: process.env.NAVER_CLIENT_SECRET || '',
+  },
 };
 
 export const VIDEO_CONFIG_V7 = {

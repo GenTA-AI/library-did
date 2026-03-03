@@ -68,3 +68,21 @@ model Notification {
 
   @@map("notifications")
 }
+
+model Recommendation {
+  id            String   @id @default(uuid())
+  bookId        String   @default(uuid())
+  ageGroup      String
+  sortOrder     Int      @default(0)
+  title         String
+  author        String
+  publisher     String   @default("")
+  summary       String   @default("")
+  coverImageUrl String?
+  category      String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([ageGroup, bookId])
+  @@map("recommendations")
+}
