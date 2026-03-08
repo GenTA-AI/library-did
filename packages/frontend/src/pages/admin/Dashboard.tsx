@@ -198,6 +198,16 @@ export const AdminDashboard: React.FC = () => {
         <p className="text-center text-xs text-gray-400">
           영상 생성 요청 시 Worker가 자동으로 처리합니다.
         </p>
+
+        {/* 문의/피드백 */}
+        <div className="mt-6 rounded-2xl px-6 py-4" style={{ background: 'rgba(255,255,255,0.7)' }}>
+          <h3 className="text-sm font-bold text-gray-700 mb-2">문의 / 피드백</h3>
+          <div className="text-xs text-gray-500 space-y-1">
+            <p>문의: info@genta.co.kr</p>
+            <p>대표: j.lee@genta.co.kr</p>
+            <p className="text-gray-400 pt-1">BookMate v0.5 Beta</p>
+          </div>
+        </div>
       </div>
     </AdminLayout>
   );

@@ -9,9 +9,8 @@ import { VideoManagement } from './pages/admin/VideoManagement';
 import { DidV2Home } from './pages/did/DidV2Home';
 import { DidV2BookGrid } from './pages/did/DidV2BookGrid';
 import { DidV2BookDetail } from './pages/did/DidV2BookDetail';
-import { DidV2NewArrivals } from './pages/did/DidV2NewArrivals';
-import { DidV2Search } from './pages/did/DidV2Search';
-import { DidV2Location } from './pages/did/DidV2Location';
+import { NewArrivalsPage } from './pages/did/NewArrivalsPage';
+import { RecommendationsPage } from './pages/did/RecommendationsPage';
 
 function App() {
   const { initialize } = useAuthStore();
@@ -26,18 +25,13 @@ function App() {
   return (
     <BrowserRouter basename={basename}>
       <Routes>
-        {/* DID 메인 (900×1600 북메이트 추천도서) */}
+        {/* DID 베타: 홈 → 연령별 추천 → 책 상세/영상 */}
         <Route path="/" element={<Navigate to="/did" replace />} />
         <Route path="/did" element={<DidV2Home />} />
         <Route path="/did/age/:group" element={<DidV2BookGrid />} />
+        <Route path="/did/new-arrivals" element={<NewArrivalsPage />} />
+        <Route path="/did/recommendations" element={<RecommendationsPage />} />
         <Route path="/did/video/:bookId" element={<DidV2BookDetail />} />
-        <Route path="/did/new" element={<DidV2NewArrivals />} />
-        <Route path="/did/search" element={<DidV2Search />} />
-        <Route path="/did/location/:bookId" element={<DidV2Location />} />
-
-        {/* 프로토타입: /pip → 책 미리보기 */}
-        <Route path="/pip" element={<Navigate to="/did/video/BK001" replace />} />
-        <Route path="/pip/:bookId" element={<DidV2BookDetail />} />
 
         {/* Admin 관리자 페이지 */}
         <Route path="/admin" element={<Navigate to="/admin/login" replace />} />

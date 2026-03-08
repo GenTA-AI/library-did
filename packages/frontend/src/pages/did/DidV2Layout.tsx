@@ -81,7 +81,10 @@ export function DidV2Layout({
           style={{ background: 'rgba(255,255,255,0.4)' }}
         >
           {/* Left: Title */}
-          <div className="min-w-0 flex-1">
+          <div
+            className="min-w-0 flex-1 cursor-pointer"
+            onClick={() => navigate('/did')}
+          >
             {title ? (
               <h1 className="max-w-full truncate text-xl font-bold text-gray-800">
                 {title}
@@ -89,7 +92,7 @@ export function DidV2Layout({
             ) : (
               <div className="flex items-center gap-2">
                 <span className="text-xl font-bold text-gray-800">BookMate</span>
-                <span className="text-base text-gray-600">북메이트</span>
+                <span className="text-base text-gray-600">꿈샘도서관</span>
               </div>
             )}
           </div>
@@ -132,29 +135,17 @@ export function DidV2Layout({
             </button>
             <button
               type="button"
-              onClick={() => navigate('/did/search')}
-              className="flex h-12 items-center justify-center rounded-2xl px-4 text-base font-semibold transition active:scale-95"
-              style={{
-                background:
-                  location.pathname === '/did/search'
-                    ? 'linear-gradient(180deg, #A8D8EA 0%, #8BC9E0 100%)'
-                    : '#F0F0F0',
-                color: location.pathname === '/did/search' ? '#2D5A6B' : '#666',
-              }}
+              disabled
+              className="flex h-12 items-center justify-center rounded-2xl px-4 text-base font-semibold opacity-40"
+              style={{ background: '#F0F0F0', color: '#999' }}
             >
               검색
             </button>
             <button
               type="button"
-              onClick={() => navigate('/did/new')}
-              className="flex h-12 items-center justify-center rounded-2xl px-4 text-base font-semibold transition active:scale-95"
-              style={{
-                background:
-                  location.pathname === '/did/new'
-                    ? 'linear-gradient(180deg, #FFE5A0 0%, #FFD966 100%)'
-                    : '#F0F0F0',
-                color: location.pathname === '/did/new' ? '#6B5A2D' : '#666',
-              }}
+              disabled
+              className="flex h-12 items-center justify-center rounded-2xl px-4 text-base font-semibold opacity-40"
+              style={{ background: '#F0F0F0', color: '#999' }}
             >
               신작
             </button>

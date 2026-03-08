@@ -16,13 +16,30 @@ import { toPublicVideoUrl, toPublicSubtitleUrl } from '../utils/storage';
 export class DidController {
   /**
    * GET /api/did/new-arrivals
-   * Returns newly arrived books for DID display
+   * 관리자 등록 추천도서 우선, 없으면 ALPAS mock fallback
    */
   async getNewArrivals(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const books = await alpasService.getNewArrivals();
+      const recommendations = await recommendationRepository.getAll();
 
-      // Return minimal fields optimized for DID UI
+      if (recommendations.length > 0) {
+        // 최근 등록 순으로 정렬
+        const sorted = [...recommendations].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        const didBooks = sorted.map((rec) => ({
+          id: rec.bookId,
+          title: rec.title,
+          author: rec.author,
+          coverImageUrl: rec.coverImageUrl || undefined,
+          shelfCode: '',
+          category: rec.category,
+        }));
+        return reply.send({ success: true, data: didBooks });
+      }
+
+      // Fallback: ALPAS mock/real
+      const books = await alpasService.getNewArrivals();
       const didBooks = books.map((book) => ({
         id: book.id,
         title: book.title,
@@ -31,11 +48,7 @@ export class DidController {
         shelfCode: book.shelfCode,
         category: book.category,
       }));
-
-      return reply.send({
-        success: true,
-        data: didBooks,
-      });
+      return reply.send({ success: true, data: didBooks });
     } catch (error: any) {
       return reply.code(500).send({
         success: false,
@@ -46,13 +59,26 @@ export class DidController {
 
   /**
    * GET /api/did/librarian-picks
-   * Returns librarian recommended books for DID display
+   * 관리자 등록 추천도서 우선, 없으면 ALPAS mock fallback
    */
   async getLibrarianPicks(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const books = await alpasService.getLibrarianPicks();
+      const recommendations = await recommendationRepository.getAll();
 
-      // Return minimal fields optimized for DID UI
+      if (recommendations.length > 0) {
+        const didBooks = recommendations.map((rec) => ({
+          id: rec.bookId,
+          title: rec.title,
+          author: rec.author,
+          coverImageUrl: rec.coverImageUrl || undefined,
+          shelfCode: '',
+          category: rec.category,
+        }));
+        return reply.send({ success: true, data: didBooks });
+      }
+
+      // Fallback: ALPAS mock/real
+      const books = await alpasService.getLibrarianPicks();
       const didBooks = books.map((book) => ({
         id: book.id,
         title: book.title,
@@ -61,11 +87,7 @@ export class DidController {
         shelfCode: book.shelfCode,
         category: book.category,
       }));
-
-      return reply.send({
-        success: true,
-        data: didBooks,
-      });
+      return reply.send({ success: true, data: didBooks });
     } catch (error: any) {
       return reply.code(500).send({
         success: false,
@@ -174,7 +196,28 @@ export class DidController {
         });
       }
 
-      // 2. VideoRecord에서 책 정보 조회 (ALPAS에서 못 찾은 경우)
+      // 2. Recommendations 테이블에서 조회 (관리자 등록 도서)
+      const recommendations = await recommendationRepository.getAll();
+      const rec = recommendations.find((r) => r.bookId === bookId);
+      if (rec) {
+        return reply.send({
+          success: true,
+          data: {
+            id: rec.bookId,
+            title: rec.title,
+            author: rec.author,
+            publisher: rec.publisher || '',
+            summary: rec.summary || '',
+            shelfCode: '',
+            callNumber: '',
+            category: rec.category || '',
+            coverImageUrl: rec.coverImageUrl || undefined,
+            isAvailable: true,
+          },
+        });
+      }
+
+      // 3. VideoRecord에서 책 정보 조회
       const videoRecord = await videoRepository.findByBookId(bookId);
       if (videoRecord && videoRecord.title) {
         console.log(`[DID getBookDetail] Using book info from VideoRecord: ${videoRecord.title}`);
@@ -187,7 +230,7 @@ export class DidController {
             publisher: videoRecord.publisher || '',
             summary: videoRecord.summary || '',
             category: videoRecord.category || '',
-            coverImageUrl: videoRecord.coverImageUrl || `https://picsum.photos/seed/${bookId}/300/400`,
+            coverImageUrl: videoRecord.coverImageUrl || undefined,
             isAvailable: true,
           },
         });
