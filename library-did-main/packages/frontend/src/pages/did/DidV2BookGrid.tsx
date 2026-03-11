@@ -27,7 +27,7 @@ export function DidV2BookGrid() {
       setLoading(true);
       try {
         const list = await getBooksByAge(ageGroup);
-        if (!cancelled) setBooks(list.slice(0, 3));
+        if (!cancelled) setBooks(list);
       } catch (e) {
         if (!cancelled) setBooks([]);
       }
