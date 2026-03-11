@@ -1,27 +1,34 @@
 /**
- * DB에 저장된 비디오 경로를 API 프록시 URL로 변환.
- * GCS든 로컬이든 백엔드가 /api/videos/:filename 으로 서빙한다.
+ * DB에 저장된 비디오 경로를 공개 URL로 변환.
+ * GCS 사용 시 직접 GCS URL을 반환하여 프록시 없이 빠르게 서빙.
  */
+const GCS_BASE = process.env.GCS_PUBLIC_BASE_URL || '';
+const STORAGE_TYPE = (process.env.STORAGE_TYPE || 'local').toLowerCase();
+
 export function toPublicVideoUrl(videoUrl: string | null | undefined): string | null {
   if (!videoUrl) return null;
 
-  // 이미 /videos/ 형태면 그대로
-  if (videoUrl.startsWith('/videos/')) return videoUrl;
-
-  // /api/videos/... → /videos/... 로 정규화
-  if (videoUrl.startsWith('/api/videos/')) {
-    return videoUrl.replace('/api/videos/', '/videos/');
-  }
-
-  // 레거시 절대 GCS URL → 파일명 추출
+  // 이미 GCS 절대 URL이면 그대로
   if (videoUrl.startsWith('https://storage.googleapis.com/')) {
-    const filename = videoUrl.split('/').pop();
-    return filename ? `/videos/${filename}` : null;
+    return videoUrl;
   }
 
-  // 상대경로(./filename 등) → 파일명만 추출
-  const filename = videoUrl.replace(/^\.\//, '').split('/').pop();
-  return filename ? `/videos/${filename}` : null;
+  // 파일명 추출
+  const filename = videoUrl
+    .replace(/^\/api\/videos\//, '')
+    .replace(/^\/videos\//, '')
+    .replace(/^\.\//, '')
+    .split('/').pop();
+
+  if (!filename) return null;
+
+  // GCS 사용 시 직접 GCS URL 반환 (프록시 없이 빠름)
+  if (STORAGE_TYPE === 'gcs' && GCS_BASE) {
+    return `${GCS_BASE}/${filename}`;
+  }
+
+  // 로컬 스토리지는 프록시 경로
+  return `/videos/${filename}`;
 }
 
 /**
