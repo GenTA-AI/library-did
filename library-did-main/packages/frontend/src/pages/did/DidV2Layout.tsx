@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { checkAlpasStatus } from '../../api/did.api';
 
 const ASPECT_RATIO = 9 / 16;
 
@@ -24,6 +25,8 @@ export function DidV2Layout({
   const isHome = location.pathname === '/did' || location.pathname === '/did/';
 
   const [isLandscape, setIsLandscape] = useState(false);
+  const [alpasConnected, setAlpasConnected] = useState(false);
+
   useEffect(() => {
     const checkOrientation = () => {
       setIsLandscape(window.innerWidth > window.innerHeight);
@@ -31,6 +34,10 @@ export function DidV2Layout({
     checkOrientation();
     window.addEventListener('resize', checkOrientation);
     return () => window.removeEventListener('resize', checkOrientation);
+  }, []);
+
+  useEffect(() => {
+    checkAlpasStatus().then(setAlpasConnected);
   }, []);
 
   return (
@@ -104,7 +111,36 @@ export function DidV2Layout({
             >
               홈
             </button>
-            {/* 검색/신착 버튼 숨김 처리 */}
+            {alpasConnected && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => navigate('/did/search')}
+                  className="flex h-12 items-center justify-center rounded-2xl px-4 text-base font-semibold transition active:scale-95 sm:h-14 sm:px-6 sm:text-lg"
+                  style={{
+                    background: location.pathname.includes('/search')
+                      ? 'linear-gradient(180deg, #A8D8EA 0%, #8BC9E0 100%)'
+                      : '#F0F0F0',
+                    color: location.pathname.includes('/search') ? '#2D5A6B' : '#666',
+                  }}
+                >
+                  검색
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/did/new')}
+                  className="flex h-12 items-center justify-center rounded-2xl px-4 text-base font-semibold transition active:scale-95 sm:h-14 sm:px-6 sm:text-lg"
+                  style={{
+                    background: location.pathname.includes('/did/new')
+                      ? 'linear-gradient(180deg, #A8D8EA 0%, #8BC9E0 100%)'
+                      : '#F0F0F0',
+                    color: location.pathname.includes('/did/new') ? '#2D5A6B' : '#666',
+                  }}
+                >
+                  신작 도서
+                </button>
+              </>
+            )}
           </div>
           <div className="flex gap-2 sm:gap-3">
             <button

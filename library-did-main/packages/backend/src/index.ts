@@ -16,6 +16,7 @@ import { videoRoutes } from './routes/video.routes';
 import prisma from './config/database';
 import { schedulerService } from './services/scheduler.service';
 import { queueService } from './services/queue.service';
+import { initAlpasService } from './services/alpas.service';
 
 const fastify = Fastify({
   logger: {
@@ -134,6 +135,9 @@ async function main() {
     if (config.nodeEnv !== 'production') {
       fastify.log.info(`API Documentation: http://localhost:${config.port}/documentation`);
     }
+
+    // ALPAS API 연결 테스트 (시작 시 1회)
+    await initAlpasService();
 
     // Initialize pg-boss queue service
     await queueService.initialize();

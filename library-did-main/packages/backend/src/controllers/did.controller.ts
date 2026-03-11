@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { alpasService } from '../services/alpas.service';
+import { alpasService, isAlpasConnected } from '../services/alpas.service';
 import { videoRepository } from '../repositories/video.repository';
 import { recommendationRepository } from '../repositories/recommendation.repository';
 import { queueService } from '../services/queue.service';
@@ -19,18 +19,11 @@ export class DidController {
    * ALPAS API 연결 상태 확인
    */
   async checkAlpasStatus(_request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const books = await alpasService.searchBooks('도서');
-      return reply.send({
-        success: true,
-        data: { connected: books.length > 0 },
-      });
-    } catch {
-      return reply.send({
-        success: true,
-        data: { connected: false },
-      });
-    }
+    // 시작 시 테스트한 연결 상태 반환 (매번 API 호출 안 함)
+    return reply.send({
+      success: true,
+      data: { connected: isAlpasConnected() },
+    });
   }
 
   /**
