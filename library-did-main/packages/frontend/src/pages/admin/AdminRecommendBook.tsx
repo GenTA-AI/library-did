@@ -20,7 +20,7 @@ const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
 export function AdminRecommendBook() {
   const [activeTab, setActiveTab] = useState<AgeGroup>('preschool');
   const [recommendations, setRecommendations] = useState<RecommendationData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
