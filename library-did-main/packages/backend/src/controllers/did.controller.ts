@@ -9,6 +9,15 @@ import { naverBookService } from '../services/naver-book.service';
 
 // 네이버 표지 캐시 (title+author → imageUrl)
 const coverCache = new Map<string, string | null>();
+const COVER_TIMEOUT_MS = 2000; // 네이버 API 타임아웃 (2초)
+
+/** 타임아웃 래퍼 */
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
 
 /**
  * 표지 URL이 없거나 picsum(더미)이면 네이버 API로 실제 표지를 가져옴
@@ -29,7 +38,11 @@ async function enrichCoverUrl(
   }
 
   try {
-    const naverUrl = await naverBookService.searchCoverImage(title, author);
+    const naverUrl = await withTimeout(
+      naverBookService.searchCoverImage(title, author),
+      COVER_TIMEOUT_MS,
+      null,
+    );
     coverCache.set(cacheKey, naverUrl);
     return naverUrl || undefined;
   } catch {
@@ -38,15 +51,19 @@ async function enrichCoverUrl(
   }
 }
 
-/** 배열의 표지를 일괄 보강 */
+/** 배열의 표지를 일괄 보강 (전체 5초 타임아웃) */
 async function enrichBookCovers<T extends { title: string; author: string; coverImageUrl?: string }>(
   books: T[],
 ): Promise<T[]> {
-  return Promise.all(
-    books.map(async (book) => ({
-      ...book,
-      coverImageUrl: await enrichCoverUrl(book.title, book.author, book.coverImageUrl),
-    })),
+  return withTimeout(
+    Promise.all(
+      books.map(async (book) => ({
+        ...book,
+        coverImageUrl: await enrichCoverUrl(book.title, book.author, book.coverImageUrl),
+      })),
+    ),
+    5000,
+    books, // 타임아웃 시 원본 그대로 반환
   );
 }
 
