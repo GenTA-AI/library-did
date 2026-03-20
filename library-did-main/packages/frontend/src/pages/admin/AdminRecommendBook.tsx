@@ -14,8 +14,8 @@ const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
 
 /**
  * 추천 도서 등록 — ALPAS 검색 → 선택 → 등록
- * 좌측: 연령별 탭 + 등록된 추천도서 리스트
- * 우측: ALPAS 도서 검색 + 선택
+ * 상단: 연령 탭 + 검색바
+ * 하단: 검색 결과 (등록 버튼) + 등록된 도서 표시
  */
 export function AdminRecommendBook() {
   const [activeTab, setActiveTab] = useState<AgeGroup>('preschool');
@@ -78,7 +78,7 @@ export function AdminRecommendBook() {
         coverImageUrl: book.coverImageUrl,
         category: book.category || '',
       });
-      setMessage({ type: 'success', text: `"${book.title}" 추천도서가 등록되었습니다.` });
+      setMessage({ type: 'success', text: `"${book.title}" → ${AGE_GROUP_LABELS[activeTab]} 등록 완료` });
       await loadRecommendations();
     } catch {
       setMessage({ type: 'error', text: '등록에 실패했습니다.' });
@@ -92,7 +92,7 @@ export function AdminRecommendBook() {
     setMessage(null);
     try {
       await adminApi.deleteRecommendation(id);
-      setMessage({ type: 'success', text: '추천도서가 삭제되었습니다.' });
+      setMessage({ type: 'success', text: '삭제되었습니다.' });
       await loadRecommendations();
     } catch {
       setMessage({ type: 'error', text: '삭제에 실패했습니다.' });
@@ -101,18 +101,17 @@ export function AdminRecommendBook() {
     }
   };
 
-  const filteredRecommendations = recommendations.filter((r) => r.ageGroup === activeTab);
   const registeredBookIds = new Set(recommendations.map((r) => r.bookId));
+  const filteredRecommendations = recommendations.filter((r) => r.ageGroup === activeTab);
 
   return (
     <AdminLayout>
-      <div className="flex flex-1 gap-4 overflow-hidden px-4 py-4">
-        {/* 좌측: 연령별 탭 + 추천도서 리스트 */}
+      <div className="flex flex-1 flex-col overflow-hidden px-4 py-4">
         <div
-          className="flex w-1/2 flex-col rounded-2xl"
+          className="flex flex-1 flex-col overflow-hidden rounded-2xl"
           style={{ background: 'rgba(255,255,255,0.9)' }}
         >
-          {/* 연령 탭 */}
+          {/* 상단: 연령 탭 */}
           <div className="flex shrink-0 border-b border-gray-200">
             {(Object.keys(AGE_GROUP_LABELS) as AgeGroup[]).map((group) => (
               <button
@@ -133,87 +132,28 @@ export function AdminRecommendBook() {
             ))}
           </div>
 
-          {/* 추천도서 리스트 */}
-          <div className="flex-1 overflow-auto p-4">
-            {loading ? (
-              <div className="flex h-full items-center justify-center">
-                <p className="text-sm text-gray-400">불러오는 중...</p>
-              </div>
-            ) : filteredRecommendations.length === 0 ? (
-              <div className="flex h-full items-center justify-center">
-                <p className="text-sm text-gray-400">
-                  {AGE_GROUP_LABELS[activeTab]} 등록된 추천도서가 없습니다.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {filteredRecommendations.map((rec) => (
-                  <div
-                    key={rec.id}
-                    className="flex items-center gap-3 rounded-xl bg-gray-50 p-3"
-                  >
-                    <div
-                      className="h-14 w-10 shrink-0 rounded-lg"
-                      style={{
-                        background: rec.coverImageUrl
-                          ? `url(${rec.coverImageUrl}) center/cover no-repeat`
-                          : '#E0E0E0',
-                      }}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-gray-800">{rec.title}</p>
-                      <p className="truncate text-xs text-gray-500">{rec.author}</p>
-                      <p className="truncate text-xs text-gray-400">{rec.bookId}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(rec.id)}
-                      disabled={deleting === rec.id}
-                      className="shrink-0 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
-                    >
-                      {deleting === rec.id ? '삭제중...' : '삭제'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 우측: ALPAS 도서 검색 */}
-        <div
-          className="flex w-1/2 flex-col rounded-2xl"
-          style={{ background: 'rgba(255,255,255,0.9)' }}
-        >
-          <div className="shrink-0 border-b border-gray-200 px-4 py-3">
-            <h2 className="text-base font-bold text-gray-800">도서 검색 (ALPAS)</h2>
-            <p className="mt-1 text-xs text-gray-500">
-              도서관 시스템에서 검색하여 추천도서로 등록합니다.
-            </p>
-          </div>
-
           {/* 검색바 */}
-          <form onSubmit={handleSearch} className="flex shrink-0 gap-2 px-4 py-3">
+          <form onSubmit={handleSearch} className="flex shrink-0 gap-2 px-3 py-3 border-b border-gray-100">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="제목 또는 저자 검색"
-              className="h-10 flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm outline-none focus:border-gray-400 focus:bg-white"
+              placeholder="제목 또는 저자 검색 (ALPAS)"
+              className="h-10 min-w-0 flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm outline-none focus:border-gray-400 focus:bg-white"
             />
             <button
               type="submit"
               disabled={searching || !searchQuery.trim()}
               className="h-10 shrink-0 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {searching ? '검색중...' : '검색'}
+              {searching ? '...' : '검색'}
             </button>
           </form>
 
           {/* 메시지 */}
           {message && (
             <div
-              className={`mx-4 rounded-lg px-3 py-2 text-sm ${
+              className={`mx-3 mt-2 rounded-lg px-3 py-2 text-sm ${
                 message.type === 'success'
                   ? 'bg-green-50 text-green-700'
                   : 'bg-red-50 text-red-700'
@@ -223,54 +163,101 @@ export function AdminRecommendBook() {
             </div>
           )}
 
-          {/* 검색 결과 */}
-          <div className="flex-1 overflow-auto p-4">
-            {searchResults.length === 0 && !searching && (
-              <div className="flex h-full items-center justify-center">
-                <p className="text-sm text-gray-400">도서를 검색해주세요.</p>
+          {/* 콘텐츠 영역 */}
+          <div className="flex-1 overflow-auto p-3">
+            {/* 등록된 추천도서 (해당 연령) */}
+            {filteredRecommendations.length > 0 && (
+              <div className="mb-4">
+                <p className="mb-2 text-xs font-semibold text-gray-500">
+                  {AGE_GROUP_LABELS[activeTab]} 등록 도서 ({filteredRecommendations.length})
+                </p>
+                <div className="space-y-1.5">
+                  {filteredRecommendations.map((rec) => (
+                    <div
+                      key={rec.id}
+                      className="flex items-center gap-2 rounded-xl bg-blue-50 p-2.5"
+                    >
+                      <div
+                        className="h-12 w-8 shrink-0 rounded-lg"
+                        style={{
+                          background: rec.coverImageUrl
+                            ? `url(${rec.coverImageUrl}) center/cover no-repeat`
+                            : '#E0E0E0',
+                        }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold text-gray-800">{rec.title}</p>
+                        <p className="truncate text-xs text-gray-500">{rec.author}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(rec.id)}
+                        disabled={deleting === rec.id}
+                        className="shrink-0 rounded-lg bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
+                      >
+                        {deleting === rec.id ? '...' : '삭제'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
-            <div className="space-y-2">
-              {searchResults.map((book) => {
-                const alreadyRegistered = registeredBookIds.has(book.id);
-                return (
-                  <div
-                    key={book.id}
-                    className="flex items-center gap-3 rounded-xl bg-gray-50 p-3"
-                  >
-                    <div
-                      className="h-14 w-10 shrink-0 rounded-lg"
-                      style={{
-                        background: book.coverImageUrl
-                          ? `url(${book.coverImageUrl}) center/cover no-repeat`
-                          : '#E0E0E0',
-                      }}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-gray-800">{book.title}</p>
-                      <p className="truncate text-xs text-gray-500">{book.author}</p>
-                      <p className="truncate text-xs text-gray-400">{book.category}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRegister(book)}
-                      disabled={alreadyRegistered || submitting === book.id}
-                      className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                        alreadyRegistered
-                          ? 'bg-gray-100 text-gray-400'
-                          : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                      } disabled:opacity-50`}
-                    >
-                      {alreadyRegistered
-                        ? '등록됨'
-                        : submitting === book.id
-                          ? '등록중...'
-                          : `${AGE_GROUP_LABELS[activeTab]} 등록`}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+
+            {/* 검색 결과 */}
+            {searchResults.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs font-semibold text-gray-500">
+                  검색 결과 ({searchResults.length})
+                </p>
+                <div className="space-y-1.5">
+                  {searchResults.map((book) => {
+                    const alreadyRegistered = registeredBookIds.has(book.id);
+                    return (
+                      <div
+                        key={book.id}
+                        className="flex items-center gap-2 rounded-xl bg-gray-50 p-2.5"
+                      >
+                        <div
+                          className="h-12 w-8 shrink-0 rounded-lg"
+                          style={{
+                            background: book.coverImageUrl
+                              ? `url(${book.coverImageUrl}) center/cover no-repeat`
+                              : '#E0E0E0',
+                          }}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold text-gray-800">{book.title}</p>
+                          <p className="truncate text-xs text-gray-500">{book.author}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRegister(book)}
+                          disabled={alreadyRegistered || submitting === book.id}
+                          className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+                            alreadyRegistered
+                              ? 'bg-gray-200 text-gray-400'
+                              : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                          } disabled:opacity-50`}
+                        >
+                          {alreadyRegistered
+                            ? '등록됨'
+                            : submitting === book.id
+                              ? '...'
+                              : `${AGE_GROUP_LABELS[activeTab]} 등록`}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 빈 상태 */}
+            {searchResults.length === 0 && filteredRecommendations.length === 0 && !searching && (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-sm text-gray-400">도서를 검색하여 추천도서로 등록하세요.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
