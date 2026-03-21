@@ -41,7 +41,7 @@ export function DidV2NewArrivals() {
       try {
         const list = await getNewArrivals();
         if (cancelled) return;
-        setBooks(list.slice(0, 8));
+        setBooks(list.slice(0, 30));
 
         // 각 책의 영상 상태 확인
         const videoResults = await Promise.all(
