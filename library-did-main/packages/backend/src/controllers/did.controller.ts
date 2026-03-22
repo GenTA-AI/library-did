@@ -38,25 +38,24 @@ async function enrichCoverUrl(
   }
 
   try {
+    let timedOut = false;
     const naverUrl = await withTimeout(
       naverBookService.searchCoverImage(title, author),
       COVER_TIMEOUT_MS,
       '__TIMEOUT__' as any,
     );
     if (naverUrl === '__TIMEOUT__') {
-      // 타임아웃 — 원본 유지, 다음 요청에서 재시도
-      return currentUrl;
+      timedOut = true;
     }
-    if (naverUrl) {
-      // 네이버에서 찾음 — 캐시
-      coverCache.set(cacheKey, naverUrl);
-      return naverUrl;
+    if (timedOut) {
+      // 타임아웃 — 캐시하지 않고 다음 요청에서 재시도
+      return undefined;
     }
-    // 네이버에 없음 — 캐시하고 원본 유지
-    coverCache.set(cacheKey, null);
-    return currentUrl;
+    // 성공 또는 미발견 — 결과 캐시
+    coverCache.set(cacheKey, naverUrl);
+    return naverUrl || undefined;
   } catch {
-    return currentUrl;
+    return undefined;
   }
 }
 
