@@ -155,7 +155,7 @@ export const AdminDashboard: React.FC = () => {
               {recommendations.slice(0, 5).map((rec) => (
                 <div
                   key={rec.id}
-                  className="flex items-center justify-between rounded-xl bg-gray-50 p-3"
+                  className="flex items-center rounded-xl bg-gray-50 p-3"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-gray-800">
@@ -163,14 +163,6 @@ export const AdminDashboard: React.FC = () => {
                     </p>
                     <p className="truncate text-xs text-gray-500">{rec.author}</p>
                   </div>
-                  <button
-                    type="button"
-                    disabled={loading}
-                    onClick={() => handleRequestVideo(rec.bookId)}
-                    className="ml-2 shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-                  >
-                    영상 생성
-                  </button>
                 </div>
               ))}
             </div>
