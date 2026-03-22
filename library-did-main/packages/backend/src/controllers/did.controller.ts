@@ -53,39 +53,26 @@ async function enrichCoverUrl(
   }
 
   try {
-    // 1차: 원본 제목으로 검색
-    let naverUrl = await withTimeout(
-      naverBookService.searchCoverImage(title, author),
+    const cleaned = cleanTitleForSearch(title);
+    const searchTitle = cleaned || title;
+
+    // 제목만으로 검색 (저자 포함하면 ALPAS 저자 형식 때문에 실패율 높음)
+    const naverUrl = await withTimeout(
+      naverBookService.searchCoverImage(searchTitle),
       COVER_TIMEOUT_MS,
       '__TIMEOUT__' as any,
     );
     if (naverUrl === '__TIMEOUT__') {
-      console.log(`[Cover] TIMEOUT: "${title}"`);
+      console.log(`[Cover] TIMEOUT: "${searchTitle}"`);
       return currentUrl;
     }
 
-    // 2차: 못 찾으면 클리닝된 제목으로 재검색
-    if (!naverUrl) {
-      const cleaned = cleanTitleForSearch(title);
-      if (cleaned && cleaned !== title) {
-        naverUrl = await withTimeout(
-          naverBookService.searchCoverImage(cleaned, author),
-          COVER_TIMEOUT_MS,
-          '__TIMEOUT__' as any,
-        );
-        if (naverUrl === '__TIMEOUT__') {
-          console.log(`[Cover] TIMEOUT (retry): "${cleaned}"`);
-          return currentUrl;
-        }
-      }
-    }
-
     if (naverUrl) {
-      console.log(`[Cover] OK: "${title}" → ${naverUrl.substring(0, 50)}...`);
+      console.log(`[Cover] OK: "${searchTitle}" → ${naverUrl.substring(0, 50)}...`);
       coverCache.set(cacheKey, naverUrl);
       return naverUrl;
     }
-    console.log(`[Cover] NOT FOUND: "${title}"`);
+    console.log(`[Cover] NOT FOUND: "${searchTitle}"`);
     coverCache.set(cacheKey, null);
     return currentUrl;
   } catch (err: any) {
