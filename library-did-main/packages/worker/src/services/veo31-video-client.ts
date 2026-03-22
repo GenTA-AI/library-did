@@ -8,6 +8,9 @@
  */
 
 import { GoogleGenAI } from '@google/genai';
+import fs from 'fs/promises';
+import path from 'path';
+import os from 'os';
 import { config } from '../config';
 import { logger } from '../config/logger';
 
@@ -42,7 +45,7 @@ export class Veo31VideoClient {
         mimeType: 'image/png',
       };
 
-      const operation = await (this.client as any).models.generateVideos({
+      const operation = await this.client.models.generateVideos({
         model: 'veo-3.1-generate-preview',
         prompt: request.prompt,
         image,
@@ -63,25 +66,24 @@ export class Veo31VideoClient {
           logger.info(`[Veo3.1] ... ${waitCount * 10}s elapsed`);
         }
         await new Promise((r) => setTimeout(r, 10000));
-        op = await (this.client as any).operations.get(op);
+        op = await this.client.operations.getVideosOperation({ operation: op });
       }
 
       if (!op.done) {
         return { success: false, error: 'Veo 3.1 generation timed out' };
       }
 
-      if (op.result && op.result.generatedVideos && op.result.generatedVideos.length > 0) {
-        const video = op.result.generatedVideos[0];
-        const videoBytes = await (this.client as any).files.download({ file: video.video });
-
-        let videoBuffer: Buffer;
-        if (videoBytes instanceof Buffer) {
-          videoBuffer = videoBytes;
-        } else if (videoBytes instanceof Uint8Array) {
-          videoBuffer = Buffer.from(videoBytes);
-        } else {
-          videoBuffer = Buffer.from(videoBytes);
+      const generatedVideos = op.response?.generatedVideos;
+      if (generatedVideos && generatedVideos.length > 0) {
+        const video = generatedVideos[0];
+        if (!video.video) {
+          return { success: false, error: 'No video file in response' };
         }
+
+        const tmpPath = path.join(os.tmpdir(), `veo31-${Date.now()}.mp4`);
+        await this.client.files.download({ file: video.video, downloadPath: tmpPath });
+        const videoBuffer = await fs.readFile(tmpPath);
+        await fs.unlink(tmpPath).catch(() => {});
 
         logger.info('[Veo3.1] Video generation complete');
         return { success: true, videoBuffer };

@@ -34,7 +34,7 @@ async function enrichCoverUrl(
 
   const cacheKey = `${title}|${author || ''}`;
   if (coverCache.has(cacheKey)) {
-    return coverCache.get(cacheKey) || undefined;
+    return coverCache.get(cacheKey) || currentUrl;
   }
 
   try {
