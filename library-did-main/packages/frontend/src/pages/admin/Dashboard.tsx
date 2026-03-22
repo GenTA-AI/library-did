@@ -8,10 +8,7 @@ import { AdminLayout } from './AdminLayout';
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
-  const {
-    loadVideos,
-    requestVideoGeneration,
-  } = useAdminStore();
+  const { loadVideos } = useAdminStore();
 
   const [stats, setStats] = useState<{
     totalCreated: number;
@@ -22,7 +19,6 @@ export const AdminDashboard: React.FC = () => {
     generating: number;
   } | null>(null);
   const [recommendations, setRecommendations] = useState<RecommendationData[]>([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -72,16 +68,6 @@ export const AdminDashboard: React.FC = () => {
         queued: 0,
         generating: 0,
       });
-    }
-  };
-
-  const handleRequestVideo = async (bookId: string) => {
-    setLoading(true);
-    try {
-      await requestVideoGeneration(bookId);
-      await loadStats();
-    } finally {
-      setLoading(false);
     }
   };
 

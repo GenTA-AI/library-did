@@ -181,7 +181,7 @@ export class AlpasRealService {
       registrationNumber: regNo,
       shelfCode: this.cleanShelfCode(shelfCode),
       isAvailable: loanPossible === 'Y' || loanPossible === 'y',
-      coverImageUrl: coverImage ? String(coverImage) : `https://picsum.photos/seed/${id}/300/400`,
+      coverImageUrl: coverImage ? String(coverImage) : '',
       category,
     };
   }
@@ -473,7 +473,7 @@ export class AlpasRealService {
         return `${y}/${m}/${d}`;
       };
 
-      const list = await this.callAE117(formatDate(startDate), formatDate(endDate), 1, 30);
+      const list = await this.callAE117(formatDate(startDate), formatDate(endDate), 1, 200);
       const books = list.map((book, index) => this.mapToBookFromAE117(book, String(index)));
       // 신작 목록도 캐시에 저장
       books.forEach((book) => this.cacheBook(book));
