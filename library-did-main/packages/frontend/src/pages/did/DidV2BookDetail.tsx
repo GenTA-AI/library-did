@@ -20,6 +20,7 @@ export function DidV2BookDetail() {
   const [videoEnded, setVideoEnded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [requesting, setRequesting] = useState(false);
+  const [showFullSummary, setShowFullSummary] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -122,19 +123,23 @@ export function DidV2BookDetail() {
 
   const showRequestButton = videoStatus === 'NONE' || videoStatus === 'FAILED';
   const isProcessing = videoStatus === 'QUEUED' || videoStatus === 'GENERATING';
+  const summary = bookDetail?.summary || '';
+  const needsExpand = summary.length > 80;
 
   return (
     <DidV2Layout title={bookDetail?.title || '책 미리보기'}>
-      <div className="flex flex-1 flex-col overflow-auto py-4 sm:py-6">
-        {/* Video player */}
+      <div className="flex flex-1 flex-col overflow-auto py-0">
+
+        {/* ── 영상 플레이어 (좌우 마진 없이 꽉 차게) ── */}
         <div
-          className="relative w-full shrink-0 overflow-hidden"
+          className="relative shrink-0 overflow-hidden"
           style={{
             aspectRatio: '16/9',
-            borderRadius: '1.5rem',
-            border: '4px solid rgba(255,255,255,0.7)',
-            boxShadow: '0 10px 40px rgba(60,90,70,0.18), inset 0 0 0 1px rgba(255,255,255,0.3)',
             background: '#1a1a2e',
+            marginLeft: '-1rem',
+            marginRight: '-1rem',
+            marginTop: '-0.5rem',
+            width: 'calc(100% + 2rem)',
           }}
         >
           {resolvedVideoUrl && videoStatus === 'READY' ? (
@@ -155,11 +160,7 @@ export function DidV2BookDetail() {
                     onClick={videoEnded ? handleReplay : handlePlay}
                     className="flex h-20 w-20 items-center justify-center rounded-full bg-white/90 shadow-lg transition-transform active:scale-90 sm:h-24 sm:w-24"
                   >
-                    <svg
-                      className="h-10 w-10 translate-x-0.5 text-gray-800 sm:h-12 sm:w-12"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="h-10 w-10 translate-x-0.5 text-gray-800 sm:h-12 sm:w-12" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
                     </svg>
                   </button>
@@ -172,9 +173,7 @@ export function DidV2BookDetail() {
               <span className="text-xl font-bold text-white sm:text-2xl">
                 {videoStatus === 'QUEUED' ? '대기 중...' : '영상 생성 중...'}
               </span>
-              <span className="text-sm text-white/60 sm:text-base">
-                완료되면 자동으로 재생됩니다
-              </span>
+              <span className="text-sm text-white/60 sm:text-base">완료되면 자동으로 재생됩니다</span>
             </div>
           ) : (
             <div className="flex h-full w-full flex-col items-center justify-center gap-3">
@@ -186,7 +185,7 @@ export function DidV2BookDetail() {
           )}
         </div>
 
-        {/* Book Info Card */}
+        {/* ── 책 정보 카드 ── */}
         <div
           className="mt-4 w-full shrink-0 p-5 sm:mt-5 sm:p-6"
           style={{
@@ -198,6 +197,7 @@ export function DidV2BookDetail() {
             border: '1.5px solid rgba(255,255,255,0.6)',
           }}
         >
+          {/* 제목 + 저자 + 표지 */}
           <div className="mb-4 flex items-start gap-4 sm:gap-5">
             {bookDetail?.coverImageUrl && (
               <div
@@ -218,26 +218,41 @@ export function DidV2BookDetail() {
                 {bookDetail?.publisher}
                 {bookDetail?.publishedYear ? ` · ${bookDetail.publishedYear}년` : ''}
               </p>
+              {bookDetail?.isAvailable !== undefined && (
+                <span
+                  className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-medium sm:text-sm ${
+                    bookDetail.isAvailable ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {bookDetail.isAvailable ? '✓ 대출가능' : '✗ 대출중'}
+                </span>
+              )}
             </div>
           </div>
 
-          <p className="text-base leading-relaxed text-gray-700 line-clamp-3 sm:text-lg">
-            {bookDetail?.summary || '이 책의 줄거리를 불러오는 중입니다...'}
-          </p>
-
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            {bookDetail?.isAvailable !== undefined && (
-              <span
-                className={`rounded-full px-4 py-1.5 text-sm font-medium sm:px-5 sm:py-2 sm:text-base ${
-                  bookDetail.isAvailable
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-red-100 text-red-700'
+          {/* 줄거리 — 접기/펼치기 */}
+          {summary ? (
+            <div>
+              <p
+                className={`text-base leading-relaxed text-gray-700 sm:text-lg ${
+                  !showFullSummary && needsExpand ? 'line-clamp-3' : ''
                 }`}
               >
-                {bookDetail.isAvailable ? '✓ 대출가능' : '✗ 대출중'}
-              </span>
-            )}
-          </div>
+                {summary}
+              </p>
+              {needsExpand && (
+                <button
+                  type="button"
+                  onClick={() => setShowFullSummary(!showFullSummary)}
+                  className="mt-2 text-sm font-medium text-blue-600 transition hover:text-blue-800 sm:text-base"
+                >
+                  {showFullSummary ? '접기' : '자세히 보기'}
+                </button>
+              )}
+            </div>
+          ) : (
+            <p className="text-base text-gray-400 sm:text-lg">줄거리를 불러오는 중...</p>
+          )}
 
           {/* 서가 위치 / 청구기호 */}
           {(bookDetail?.shelfCode || bookDetail?.callNumber) && (
@@ -269,7 +284,7 @@ export function DidV2BookDetail() {
           )}
         </div>
 
-        {/* Action buttons — 가로 배치 */}
+        {/* ── 하단 액션 버튼 (원래 위치) ── */}
         <div className="mt-auto flex shrink-0 gap-2 pt-4 sm:gap-3 sm:pt-5">
           <button
             type="button"
@@ -285,9 +300,7 @@ export function DidV2BookDetail() {
               onClick={handleRequestVideo}
               disabled={requesting}
               className="flex h-14 items-center justify-center rounded-2xl px-4 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-50 sm:h-16 sm:px-5 sm:text-base"
-              style={{
-                background: 'linear-gradient(180deg, #5B9BD5 0%, #3A7BBF 100%)',
-              }}
+              style={{ background: 'linear-gradient(180deg, #5B9BD5 0%, #3A7BBF 100%)' }}
             >
               {requesting ? '요청 중...' : '영상 생성'}
             </button>

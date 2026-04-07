@@ -18,11 +18,11 @@ from google.genai.types import GenerateContentConfig, Modality, Part
 from PIL import Image
 
 # ── 설정 ──
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "AIzaSyBhP93gMlyioptIRzv0a_gHGtGVeRtTOO8")
-NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID", "xLfYHST49wkb7cWVjKPW")
-NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "cbfL2TkYqu")
-DATA4LIB_KEY = os.environ.get("DATA4LIBRARY_AUTH_KEY", "70b5336f9e785c681d5ff58906e6416124f80f59faa834164d297dcd8db63036")
-ALADIN_KEY = os.environ.get("ALADIN_TTB_KEY", "ttbj.lee1207001")
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
+NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID", "")
+NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "")
+DATA4LIB_KEY = os.environ.get("DATA4LIBRARY_AUTH_KEY", "")
+ALADIN_KEY = os.environ.get("ALADIN_TTB_KEY", "")
 
 # ── 책 설정 ──
 BOOK_TITLE = "마당을 나온 암탉"
